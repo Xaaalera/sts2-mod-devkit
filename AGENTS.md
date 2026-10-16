@@ -15,4 +15,4 @@
 - Verify the smallest changed boundary and retain actual results. Do not claim live HMR, multiplayer, package independence, review scores, or timings from unrelated evidence.
 - Every feature needs a human-usable entry point, help, observable progress, and actionable errors. Documentation must describe implemented behavior.
 - Never commit game binaries, extracted/decompiled game content, saves, profiles, secrets, or raw personal logs. Put local artifacts in ignored `.local/`.
-- This bootstrap contains plugin declarations but no verified review harness. Install and validate the targeted review/secret-scan workflow before substantive implementation; never claim a declaration is an active gate.
+- The pinned review harness and pre-push hook are installed; unattested pushes are verified to fail. Use the configured independent roles and never bypass the gate. CI configuration does not establish hosted execution or branch protection.
