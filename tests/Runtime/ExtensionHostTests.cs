@@ -92,6 +92,53 @@ public sealed class ExtensionHostTests : IDisposable
     }
 
     [Fact]
+    public async Task InvalidCandidateMetadataPreservesTheWorkingGenerationAndDisposesTheCandidate()
+    {
+        using var host = new ExtensionHost(_directory, _diagnostics.Add);
+        await host.ReloadAsync("fixture");
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "fixtures", "InvalidFixture.dll"),
+            Path.Combine(_directory, "fixture", "fixture.dll"), true);
+        Assert.Equal("RELOAD_FAILED", (await Assert.ThrowsAsync<SdkFault>(() => host.ReloadAsync("fixture"))).Reason);
+        Assert.Equal("{\"value\":\"1\"}", host.Invoke("fixture", "echo", new Dictionary<string, string>()).Messages.Single());
+        Assert.Contains(_diagnostics, message => message.Contains("fixture.disposed") && message.Contains("InvalidFixture"));
+    }
+
+    [Fact]
+    public async Task InvalidInitialCandidateIsDisposedWithoutBecomingRegistered()
+    {
+        using var host = new ExtensionHost(_directory, _diagnostics.Add);
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "fixtures", "InvalidFixture.dll"),
+            Path.Combine(_directory, "fixture", "fixture.dll"), true);
+        Assert.Equal("RELOAD_FAILED", (await Assert.ThrowsAsync<SdkFault>(() => host.ReloadAsync("fixture"))).Reason);
+        Assert.Empty(host.Status());
+        Assert.Contains(_diagnostics, message => message.Contains("fixture.disposed") && message.Contains("InvalidFixture"));
+    }
+
+    [Fact]
+    public async Task DiagnosticFailureDisposesAnInitializedButUncommittedCandidate()
+    {
+        using var host = new ExtensionHost(_directory, message =>
+        {
+            if (message.Contains("\"status\":\"loaded\"")) { throw new IOException("diagnostic sink unavailable"); }
+            _diagnostics.Add(message);
+        });
+        await Assert.ThrowsAsync<IOException>(() => host.ReloadAsync("fixture"));
+        Assert.Empty(host.Status());
+        Assert.Contains(_diagnostics, message => message.Contains("fixture.disposed"));
+    }
+
+    [Fact]
+    public async Task InFlightReloadRejectsCompetingOperationsAndThenAcceptsCommands()
+    {
+        using var host = new ExtensionHost(_directory, _diagnostics.Add);
+        var pending = host.ReloadAsync("fixture");
+        Assert.Equal("SDK_BUSY", Assert.Throws<SdkFault>(() => host.Invoke("fixture", "echo", new Dictionary<string, string>())).Reason);
+        Assert.Equal("SDK_BUSY", (await Assert.ThrowsAsync<SdkFault>(() => host.ReloadAsync("fixture"))).Reason);
+        await pending;
+        Assert.Equal("{\"value\":\"1\"}", host.Invoke("fixture", "echo", new Dictionary<string, string>()).Messages.Single());
+    }
+
+    [Fact]
     public void PublicErrorsKeepStableReasonsAndHideRawExceptionMessages()
     {
         var wire = JsonSerializer.Serialize(SdkErrors.Normalize(new IOException("private diagnostic")), HotMod.Shell.Runtime.ReloadJson.Options);

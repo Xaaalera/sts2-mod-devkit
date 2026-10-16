@@ -28,21 +28,26 @@ public sealed class ExtensionHost(string pluginRoot, Action<string> diagnosticLo
             ReloadOutcome? outcome = await manager.ReloadAsync(
                 new ReloadRequest(sourcePath, Path.Combine(_pluginRoot, ".shadow", pluginId), null, "sdk-command", true),
                 slot.Generation);
-            diagnosticLog(ReloadJson.Serialize(outcome.Report));
-            if (outcome.NewGeneration is null) { throw new SdkFault("RELOAD_FAILED"); }
-            if (outcome.NewGeneration.Manifest.ModId != pluginId)
+            var candidate = outcome.NewGeneration;
+            var committed = false;
+            try
             {
-                outcome.NewGeneration.DisposeLogic();
-                outcome.NewGeneration.RequestUnload();
-                throw new SdkFault("PLUGIN_ID_MISMATCH");
+                diagnosticLog(ReloadJson.Serialize(outcome.Report));
+                if (candidate is null) { throw new SdkFault("RELOAD_FAILED"); }
+                if (candidate.Manifest.ModId != pluginId) { throw new SdkFault("PLUGIN_ID_MISMATCH"); }
+                if (candidate.Manifest.Capabilities is null || string.IsNullOrWhiteSpace(candidate.Manifest.LogicVersion))
+                { throw new SdkFault("RELOAD_FAILED"); }
+                var capabilities = candidate.Manifest.Capabilities.ToDictionary();
+                var hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(candidate.ShadowAssemblyPath)));
+                var release = ApplyGeneration(slot, candidate, capabilities, hash);
+                _plugins[pluginId] = slot;
+                committed = true;
+                outcome = null;
+                slot.PreviousCollected = release.Reference is null ? null : CollectPrevious(release.Reference);
+                slot.PreviousDisposed = release.Disposed;
+                return Snapshot(pluginId, slot);
             }
-
-            var release = ApplyGeneration(slot, outcome, sourcePath);
-            outcome = null;
-            slot.PreviousCollected = release.Reference is null ? null : CollectPrevious(release.Reference);
-            slot.PreviousDisposed = release.Disposed;
-            _plugins[pluginId] = slot;
-            return Snapshot(pluginId, slot);
+            finally { if (!committed && candidate is not null) { ReleaseGeneration(candidate); } }
         }
         finally { _operations.Release(); }
     }
@@ -116,13 +121,14 @@ public sealed class ExtensionHost(string pluginRoot, Action<string> diagnosticLo
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (WeakReference? Reference, bool? Disposed) ApplyGeneration(Slot slot, ReloadOutcome outcome, string sourcePath)
+    private static (WeakReference? Reference, bool? Disposed) ApplyGeneration(
+        Slot slot, ReloadGeneration candidate, Dictionary<string, string> capabilities, string hash)
     {
         var previous = slot.Generation;
-        slot.Generation = outcome.NewGeneration!;
-        slot.Version = slot.Generation.Manifest.LogicVersion;
-        slot.Capabilities = slot.Generation.Manifest.Capabilities.ToDictionary();
-        slot.Hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(slot.Generation.ShadowAssemblyPath)));
+        slot.Generation = candidate;
+        slot.Version = candidate.Manifest.LogicVersion;
+        slot.Capabilities = capabilities;
+        slot.Hash = hash;
         return ReleaseGeneration(previous);
     }
 

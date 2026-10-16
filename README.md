@@ -4,7 +4,7 @@ Private development SDK for Slay the Spire 2. The target is fast hot module repl
 
 ## Status
 
-The first Windows development slice implements trusted extension loading, advertised commands, reload, unload, structured diagnostics, and an owned-game launcher. It compiles the pinned spirectl contracts/reload code and adds a game-context adapter. Eight isolated filesystem integration tests pass. A bounded live probe changed A to B in the same PID/game thread, collected the previous generation, retained B on a malformed replacement, and recovered successfully. One warm edit-build-deploy-reload-observe cycle measured 1.406 seconds; this is not a latency guarantee.
+The first Windows development slice implements trusted extension loading, advertised commands, reload, unload, structured diagnostics, and an owned-game launcher. It compiles the pinned spirectl contracts/reload code and adds a game-context adapter. Twelve isolated filesystem integration tests pass. A bounded live probe changed A to B in the same PID/game thread, collected the previous generation, retained B on a malformed replacement, and recovered successfully. One warm edit-build-deploy-reload-observe cycle measured 1.406 seconds; this is not a latency guarantee.
 
 See the [research report](https://github.com/Xaaalera/sts2-workshop/blob/main/docs/research/2026-10-16-sdk-landscape.md) for evidence, failed hypotheses, and remaining limits.
 
@@ -72,7 +72,7 @@ dotnet test tests/Runtime/Sts2.Devkit.Tests.csproj
 ./scripts/sdk.ps1 -Action package-player
 ```
 
-Tests cover command execution, failed replacement retention, identity/path rejection, command capability enforcement, explicit unload, old-generation collection after invocation, and public error normalization. They use real temporary files and collectible assemblies; no game is required.
+Tests cover command execution, failed replacement retention, invalid-metadata and diagnostic-failure cleanup, overlapping-operation rejection/recovery, identity/path rejection, command capability enforcement, explicit unload, old-generation collection after invocation, and public error normalization. They use real temporary files and collectible assemblies; no game is required.
 
 The player package contains only the probe's native adapter and manifest. Install BaseLib/RitsuLib separately as declared dependencies. Player behavior is compiled from the same `Behavior.cs` and has no SDK runtime, contracts, workspace-path, or developer-process dependency. Workshop uploading is not part of this slice.
 
