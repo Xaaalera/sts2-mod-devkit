@@ -210,6 +210,11 @@ function Start-Game {
 
 try {
     New-Item -ItemType Directory -Path $stateDirectory -Force | Out-Null
+    $lifecycleLease = $null
+    if ($Action -in @('init','prepare','copy-config','launch')) {
+        $lifecycleLease = [IO.File]::Open((Join-Path $stateDirectory 'lifecycle.lock'),
+            [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    }
     if ($Action -eq 'init') {
         $gamePath = (Resolve-Path -LiteralPath $GameDirectory).Path
         $probePath = (Resolve-Path -LiteralPath $ProbeDirectory).Path
@@ -255,4 +260,6 @@ try {
     $message = ($catalog.root.data | Where-Object { $_.name -eq 'INTERNAL_FAILURE' }).value
     @{error=@{code=500;status='INTERNAL';message=$message;details=@(@{'@type'='ErrorInfo';reason='INTERNAL_FAILURE';domain='sts2.devkit.cli';metadata=@{diagnostics=$diagnosticPath}})}} | ConvertTo-Json -Depth 6
     exit 1
+} finally {
+    if ($null -ne $lifecycleLease) { $lifecycleLease.Dispose() }
 }

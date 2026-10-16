@@ -11,7 +11,8 @@
                        "threshold":  7,
                        "skills":  [
                                       "meta:solid",
-                                      "meta:ockham"
+                                      "meta:ockham",
+                                      "frontend-js:conventions"
                                   ],
                        "rules":  [
 

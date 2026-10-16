@@ -83,6 +83,8 @@ The player package contains only the probe's native adapter and manifest. Instal
 - A probe lifetime's generation counter starts again after unload; use session/request IDs and the unload receipt when interpreting history.
 - RitsuLib emits a missing Russian settings-translation diagnostic with the copied Russian configuration; startup and the tested SDK operations still complete. This is an open upstream localization issue.
 - Review hooks are installed and proven to reject unattested pushes. CI is configured for secret scanning; hosted execution and branch protection are not yet verified.
+- Ownership-sensitive CLI actions hold an exclusive lifecycle file lease so concurrent launch/preparation/config-copy calls cannot create a second test process or race its setup.
+- Review commands use a temporary Git metadata view pinned to the real HEAD and origin/main; this avoids the published harness's feature-upstream hashing bug without changing branch tracking or package source. `npm run review:attest -- <results-file>` takes actual completed per-role results. Wrapper setup failures report `REVIEW_SETUP_FAILURE` (INTERNAL/500).
 
 ## Boundaries
 
