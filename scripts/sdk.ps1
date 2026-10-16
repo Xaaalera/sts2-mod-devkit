@@ -32,6 +32,15 @@ function Save-Json([string]$Path, $Value) {
     [IO.File]::WriteAllText($Path, ($Value | ConvertTo-Json -Depth 20), $utf8)
 }
 
+function Read-ControlJson([string]$Path) {
+    $stream = [IO.FileStream]::new($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+    try {
+        $reader = [IO.StreamReader]::new($stream, $utf8)
+        try { return $reader.ReadToEnd() | ConvertFrom-Json }
+        finally { $reader.Dispose() }
+    } finally { $stream.Dispose() }
+}
+
 function Get-OwnedTestProcesses {
     $ownedRoot = [IO.Path]::GetFullPath($stateDirectory) + [IO.Path]::DirectorySeparatorChar
     return @(Get-Process SlayTheSpire2 -ErrorAction SilentlyContinue | Where-Object {
@@ -163,7 +172,7 @@ function Send-Request($Session, [string]$RequestAction) {
     while ($timer.Elapsed.TotalSeconds -lt 20) {
         $responsePath = Join-Path $Session.controlDirectory 'response.json'
         if (Test-Path -LiteralPath $responsePath) {
-            $response = Get-Content -LiteralPath $responsePath -Raw | ConvertFrom-Json
+            $response = Read-ControlJson $responsePath
             if ($response.requestId -eq $requestId -and $response.session -eq $Session.session) { return $response }
         }
         Start-Sleep -Milliseconds 25
@@ -201,7 +210,7 @@ function Start-Game {
     Save-Json (Join-Path $stateDirectory 'session.json') $session
     $timer = [Diagnostics.Stopwatch]::StartNew()
     while ($timer.Elapsed.TotalSeconds -lt 45) {
-        if (Test-Path -LiteralPath (Join-Path $control 'status.json')) { return Get-Content -LiteralPath (Join-Path $control 'status.json') -Raw | ConvertFrom-Json }
+        if (Test-Path -LiteralPath (Join-Path $control 'status.json')) { return Read-ControlJson (Join-Path $control 'status.json') }
         if ($process.HasExited) { throw 'Owned game exited during startup; inspect its log' }
         Start-Sleep -Milliseconds 100
     }
