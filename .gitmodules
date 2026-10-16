@@ -1,0 +1,3 @@
+[submodule "upstream/spirectl"]
+	path = upstream/spirectl
+	url = https://github.com/tfoxy/spirectl.git

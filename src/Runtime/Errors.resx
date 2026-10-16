@@ -1,0 +1,9 @@
+<root>
+  <data name="INVALID_REQUEST" xml:space="preserve"><value>Check the command, plugin ID, and request arguments.</value></data>
+  <data name="SESSION_MISMATCH" xml:space="preserve"><value>This request belongs to another SDK session. Read the current session status.</value></data>
+  <data name="PLUGIN_NOT_LOADED" xml:space="preserve"><value>Load the plugin before invoking its commands.</value></data>
+  <data name="RELOAD_FAILED" xml:space="preserve"><value>The new plugin generation could not be activated. Inspect the SDK diagnostic log; previous behavior is retained when possible.</value></data>
+  <data name="PLUGIN_ID_MISMATCH" xml:space="preserve"><value>The plugin manifest ID does not match its installation directory.</value></data>
+  <data name="SDK_BUSY" xml:space="preserve"><value>An SDK operation is still running. Read its result before submitting another mutation.</value></data>
+  <data name="INTERNAL_FAILURE" xml:space="preserve"><value>The SDK operation failed. Inspect the local diagnostic log before retrying.</value></data>
+</root>

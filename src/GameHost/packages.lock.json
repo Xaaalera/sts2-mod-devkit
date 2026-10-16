@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net9.0": {
+      "sts2.devkit.runtime": {
+        "type": "Project",
+        "dependencies": {
+          "Sts2.ModDevkit.Contracts": "[0.1.0-alpha.1, )"
+        }
+      },
+      "Sts2.ModDevkit.Contracts": {
+        "type": "Project"
+      }
+    }
+  }
+}
