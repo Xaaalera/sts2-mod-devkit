@@ -12,11 +12,12 @@ Build, prepare, launch, and control an owned StS2 development session.
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('init','build','prepare','copy-config','launch','status','reload','unload','invoke','package-player')]
+    [ValidateSet('init','build','prepare','copy-config','launch','status','reload','unload','invoke','adapter','package-player')]
     [string]$Action = 'status',
     [string]$GameDirectory,
     [string]$ProbeDirectory,
     [string]$SettingsFile,
+    [string]$ArtifactPath,
     [string]$PluginId = 'reload-probe',
     [string]$Command = 'probe',
     [hashtable]$Arguments = @{}
@@ -242,14 +243,17 @@ try {
         'status' { $controlResponse = Send-Request (Read-OwnedSession) 'status' }
         'reload' {
             $session = Read-OwnedSession
-            $source = Join-Path $configuration.probeDirectory 'src/Extension/bin/Debug/net9.0/reload-probe.dll'
+            if ($PluginId -notmatch '^[a-z][a-z0-9-]{0,63}$') { throw 'Invalid plugin identifier' }
+            $source = if ($ArtifactPath) { (Resolve-Path -LiteralPath $ArtifactPath).Path } else { Join-Path $configuration.probeDirectory 'src/Extension/bin/Debug/net9.0/reload-probe.dll' }
             $destination = Join-Path $stateDirectory "plugins/$PluginId/$PluginId.dll"
-            if ($PluginId -ne 'reload-probe') { throw 'This build/deploy recipe only owns reload-probe; other plugins require their own artifact recipe' }
+            if ($PluginId -ne 'reload-probe' -and -not $ArtifactPath) { throw 'Other plugins require an explicit -ArtifactPath' }
+            New-Item -ItemType Directory -Path (Split-Path $destination) -Force | Out-Null
             Copy-Item -LiteralPath $source -Destination "$destination.next" -Force
             Move-Item -LiteralPath "$destination.next" -Destination $destination -Force
             $controlResponse = Send-Request $session 'reload'
         }
         'invoke' { $controlResponse = Send-Request (Read-OwnedSession) 'invoke' }
+        'adapter' { $controlResponse = Send-Request (Read-OwnedSession) 'adapter' }
         'unload' { $controlResponse = Send-Request (Read-OwnedSession) 'unload' }
         'package-player' {
             $packageDirectory = Join-Path $stateDirectory 'player-package/ReloadProbe'

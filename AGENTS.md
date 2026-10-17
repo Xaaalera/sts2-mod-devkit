@@ -1,6 +1,7 @@
 # SDK working instructions
 
 - Keep repository content in English; conversation may be Russian.
+- Native game facilities are the first choice: reuse actual game APIs/components/scenes/assets, palette, fonts, animations and interactions before library adapters or custom code. A custom implementation requires a demonstrated gap recorded in existing research; copying native colors/textures alone does not establish native reuse.
 - Read README, the current [workspace handoff](https://github.com/Xaaalera/sts2-workshop/blob/main/docs/handoff.md), and relevant retained research before work.
 - Search retained findings, then primary internet sources and existing libraries before choosing an implementation. Record revisions, applicability, verification, and limits.
 - Use the installed applicable guides from [Xaaalera/claude-skills](https://github.com/Xaaalera/claude-skills): SOLID, Ockham, documentation, tests, errors, and atomic commits. Read the guide before claiming application.

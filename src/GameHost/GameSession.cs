@@ -15,6 +15,37 @@ public static class GameSession
     private static string _session = "";
     private static int _gameThread;
     private static bool _busy;
+    private static readonly Dictionary<string, Func<string, string, string>> Adapters = new(StringComparer.Ordinal);
+
+    public static IDisposable RegisterAdapter(string pluginId, Func<string, string, string> callback)
+    {
+        RequireGameThread();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pluginId, "^[a-z][a-z0-9-]{0,63}$") || !Adapters.TryAdd(pluginId, callback))
+        { throw new SdkFault("INVALID_REQUEST"); }
+        return new AdapterLease(pluginId, callback);
+    }
+
+    public static string InvokeExtensionCommand(string pluginId, string command, IReadOnlyDictionary<string, string> arguments)
+    {
+        RequireGameThread();
+        try { return JsonSerializer.Serialize(_extensions!.Invoke(pluginId, command, arguments), Json); }
+        catch (SdkFault exception) when (exception.Reason is "PLUGIN_NOT_LOADED" or "SDK_BUSY")
+        { return JsonSerializer.Serialize(new { available = false, reason = exception.Reason }, Json); }
+    }
+
+    private static void RequireGameThread()
+    {
+        if (_extensions is null || Environment.CurrentManagedThreadId != _gameThread) { throw new SdkFault("SESSION_MISMATCH"); }
+    }
+
+    private sealed class AdapterLease(string pluginId, Func<string, string, string> callback) : IDisposable
+    {
+        public void Dispose()
+        {
+            RequireGameThread();
+            if (Adapters.TryGetValue(pluginId, out var current) && ReferenceEquals(current, callback)) { Adapters.Remove(pluginId); }
+        }
+    }
 
     public static void Start()
     {
@@ -28,6 +59,7 @@ public static class GameSession
                 Path.GetFullPath(expectedUserDirectory).TrimEnd('/', '\\'), StringComparison.OrdinalIgnoreCase))
         { throw new SdkFault("SESSION_MISMATCH"); }
         _extensions = new ExtensionHost(pluginRoot, AppendDiagnostic);
+        _gameThread = Environment.CurrentManagedThreadId;
         Callable.From(InstallDispatcher).CallDeferred();
     }
 
@@ -49,6 +81,7 @@ public static class GameSession
         if (!File.Exists(requestPath)) { return; }
         _busy = true;
         string? requestId = null;
+        object response;
         try
         {
             if (Environment.CurrentManagedThreadId != _gameThread || SynchronizationContext.Current is null)
@@ -69,28 +102,41 @@ public static class GameSession
                     request.TryGetProperty("arguments", out var arguments)
                         ? arguments.Deserialize<Dictionary<string, string>>(Json) ?? new() : new()),
                 "status" => _extensions!.Status(),
+                "adapter" => InvokeAdapter(pluginId, request.GetProperty("command").GetString() ?? "",
+                    request.TryGetProperty("arguments", out var adapterArguments) ? adapterArguments.GetRawText() : "{}"),
                 _ => throw new SdkFault("INVALID_REQUEST")
             };
             if (Environment.CurrentManagedThreadId != _gameThread) { throw new SdkFault("SESSION_MISMATCH"); }
-            WriteAtomic("response.json", new { requestId, session = _session, result, gameThread = _gameThread });
-            PublishStatus();
+            response = new { requestId, session = _session, result, gameThread = _gameThread };
         }
         catch (Exception exception)
         {
             AppendDiagnostic(exception.ToString());
-            WriteAtomic("response.json", new { requestId, session = _session, result = SdkErrors.Normalize(exception) });
+            response = new { requestId, session = _session, result = SdkErrors.Normalize(exception) };
+        }
+        try
+        {
+            await WriteAtomicAsync("response.json", response);
+            await PublishStatusAsync();
+        }
+        catch (Exception exception)
+        {
+            // The operation may already be committed. Never replace its successful response with a status-publication error.
+            AppendDiagnostic($"Publication failed for request {requestId}; query actual state before retrying. {exception}");
         }
         finally
         {
-            File.Delete(processingPath);
-            _busy = false;
+            try { File.Delete(processingPath); }
+            finally { _busy = false; }
         }
     }
 
-    private static void PublishStatus()
+    private static void PublishStatus() => PublishStatusAsync().GetAwaiter().GetResult();
+
+    private static Task PublishStatusAsync()
     {
         using var process = Process.GetCurrentProcess();
-        WriteAtomic("status.json", new
+        return WriteAtomicAsync("status.json", new
         {
             session = _session,
             pid = Environment.ProcessId,
@@ -108,13 +154,19 @@ public static class GameSession
         });
     }
 
-    private static void WriteAtomic(string name, object value)
+    private static JsonElement InvokeAdapter(string pluginId, string command, string arguments)
     {
-        var destination = Path.Combine(_control, name);
-        var temporary = destination + ".tmp";
-        File.WriteAllText(temporary, JsonSerializer.Serialize(value, Json));
-        File.Move(temporary, destination, true);
+        if (!Adapters.TryGetValue(pluginId, out var adapter)) { throw new SdkFault("PLUGIN_NOT_LOADED"); }
+        try
+        {
+            using var document = JsonDocument.Parse(adapter(command, arguments));
+            return document.RootElement.Clone();
+        }
+        catch (ArgumentException) { throw new SdkFault("INVALID_REQUEST"); }
     }
+
+    private static Task WriteAtomicAsync(string name, object value) =>
+        AtomicJsonFile.WriteAsync(Path.Combine(_control, name), JsonSerializer.Serialize(value, Json));
 
     private static void AppendDiagnostic(string message)
         => File.AppendAllText(Path.Combine(_control, "events.jsonl"),
