@@ -6,12 +6,12 @@ Private development SDK for Slay the Spire 2. The target is fast hot module repl
 
 The first Windows development slice implements trusted extension loading, advertised commands, reload, unload, structured diagnostics, and an owned-game launcher. It compiles the pinned spirectl contracts/reload code and adds a game-context adapter. Fourteen isolated filesystem integration tests pass. A bounded live probe changed A to B in the same PID/game thread, collected the previous generation, retained B on a malformed replacement, and recovered successfully. One warm edit-build-deploy-reload-observe cycle measured 1.238 seconds; this is not a latency guarantee.
 
-See the [research report](https://github.com/Xaaalera/sts2-workshop/blob/main/docs/research/2026-10-16-sdk-landscape.md) for evidence, failed hypotheses, and remaining limits.
+See the [research report](https://github.com/Xaaalera/sts2-workshop/blob/feat/intent-lens/docs/research/2026-10-16-sdk-landscape.md) for evidence, failed hypotheses, and remaining limits.
 
 ## Standalone use
 
 ```powershell
-git clone https://github.com/Xaaalera/sts2-mod-devkit.git
+git clone --branch feat/intent-lens https://github.com/Xaaalera/sts2-mod-devkit.git
 cd sts2-mod-devkit
 git submodule update --init upstream/spirectl
 ```
@@ -22,7 +22,7 @@ This slice pins BaseLib 3.4.7 and RitsuLib 0.6.7's API-0.107.1 compatibility pac
 
 ## Use the SDK
 
-Clone the [probe](https://github.com/Xaaalera/sts2-reload-probe) separately, then run these commands from the SDK root:
+Clone the [probe implementation](https://github.com/Xaaalera/sts2-reload-probe/tree/feat/sdk-hmr) separately using `git clone --branch feat/sdk-hmr https://github.com/Xaaalera/sts2-reload-probe.git`, then run these commands from the SDK root:
 
 ```powershell
 ./scripts/sdk.ps1 -Action init -GameDirectory 'D:/Games/Slay the Spire 2' -ProbeDirectory 'D:/Code/sts2-reload-probe'
@@ -105,4 +105,4 @@ The player package contains only the probe's native adapter and manifest. Instal
 
 `GameSession.InvokeExtensionCommand(id, command, arguments)` invokes the existing advertised extension command. A missing/busy extension reports unavailable; an independent native player adapter can use its local implementation. The player must not require an SDK assembly reference. Intent Lens exercises this bridge with graph snapshots and pure probability results.
 
-Publication retries only identical response/status bytes on transient Windows sharing errors. It does not rerun a mutation. Status-publication failure cannot overwrite an already published successful result. Fourteen filesystem/runtime tests include held-reader publication recovery. The current resident host still needs a clean startup check after this change; retained older live HMR evidence does not establish it.
+Publication retries only identical response/status bytes on transient Windows sharing errors. It does not rerun a mutation. Status-publication failure cannot overwrite an already published successful result. Fourteen filesystem/runtime tests include held-reader publication recovery. Fresh owned-host startup, native adapter dispatch and actual extension forecasts were checked in the publication review session. The four-case UI cache fixture also verified extension predecessor disposal/collection after real invocation. Sharing-lock recovery remains filesystem-test evidence; no live game contention claim is made.
