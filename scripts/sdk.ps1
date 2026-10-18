@@ -212,7 +212,11 @@ function Start-Game {
     Save-Json (Join-Path $stateDirectory 'session.json') $session
     $timer = [Diagnostics.Stopwatch]::StartNew()
     while ($timer.Elapsed.TotalSeconds -lt 45) {
-        if (Test-Path -LiteralPath (Join-Path $control 'status.json')) { return Read-ControlJson (Join-Path $control 'status.json') }
+        if (Test-Path -LiteralPath (Join-Path $control 'status.json')) {
+            $startupStatus = Read-ControlJson (Join-Path $control 'status.json')
+            if (-not $startupStatus.testProgression.unlocked) { throw 'Owned game started without full test progression; inspect status/diagnostics and prepare the current SDK host before retrying launch' }
+            return $startupStatus
+        }
         if ($process.HasExited) { throw 'Owned game exited during startup; inspect its log' }
         Start-Sleep -Milliseconds 100
     }

@@ -13,6 +13,7 @@
 - Separate developer tools, player runtime, adapters, and mod behavior. Do not expose transport or HMR internals to gameplay algorithms or UI.
 - Keep game/framework type identity stable across reloads. Marshal game calls onto the appropriate game thread. Verify old-generation cleanup and actual collection separately from activation.
 - Use only owned test processes with PID/creation/executable/session guards. Authorized input may be used; stop immediately when the owner needs it and resume only on instruction.
+- Full progression is the default for every owned SDK test profile. After native main-menu/profile readiness, the host runs native unlock all once, backed up and constrained to the Sts2Devkit user directory. Confirm testProgression.unlocked in startup/status; never unlock the owner's Steam profile. Discovery/availability is separate from active inventory grants.
 - Reuse the owned game/session and saved scenarios. Restart only for a demonstrated need; ending a turn is not a reason to close it.
 - Use programmatic diagnostics; game screenshots require an explicit owner request for an image or visual comparison.
 - Verify the smallest changed boundary and retain actual results. Do not claim live HMR, multiplayer, package independence, review scores, or timings from unrelated evidence.
