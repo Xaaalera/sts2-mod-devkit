@@ -2,10 +2,12 @@
 
 - Keep repository content in English; conversation may be Russian.
 - Native game facilities are the first choice: reuse actual game APIs/components/scenes/assets, palette, fonts, animations and interactions before library adapters or custom code. A custom implementation requires a demonstrated gap recorded in existing research; copying native colors/textures alone does not establish native reuse.
-- Read README, the current [workspace handoff](https://github.com/Xaaalera/sts2-workshop/blob/feat/intent-lens/docs/handoff.md), and relevant retained research before work.
+- Read README and these local instructions before work. The [workspace handoff](https://github.com/Xaaalera/sts2-workshop/blob/feat/intent-lens/docs/handoff.md) is optional private maintainer context; standalone SDK development must not require access to that repository.
 - Search retained findings, then primary internet sources and existing libraries before choosing an implementation. Record revisions, applicability, verification, and limits.
 - Use the installed applicable guides from [Xaaalera/claude-skills](https://github.com/Xaaalera/claude-skills): SOLID, Ockham, documentation, tests, errors, and atomic commits. Read the guide before claiming application.
-- The complete shared baseline lives in the workspace [AGENTS.md](https://github.com/Xaaalera/sts2-workshop/blob/feat/intent-lens/AGENTS.md); follow it in linked or standalone development. Local SDK-specific rules add to that baseline.
+- Linked workspace maintainers also follow its private AGENTS.md. Public contributors use this repository's instructions and README; no private workspace access is required.
+- Original SDK code is MIT-licensed with Xaaalera attribution. Preserve the separate Apache-2.0 license, contract-package metadata and upstream LICENSE/NOTICE for directly compiled spirectl code; never present the entire dependency tree as relicensed MIT.
+- Use Kreon Bold for authored SDK/mod UI labels and promotional titles. Reuse native game typography/fallback handling; for exact external lettering render with the actual font. Avoid metallic/cinematic substitutes.
 - BaseLib and RitsuLib are selected. Reuse them; pin compatible package/runtime versions and update the workspace technology inventory. Source checkout pins do not prove runtime compatibility.
 - Define versioned extension contracts around real plugin needs. Own registration, event subscriptions, tasks, state, failure recovery, and disposal explicitly.
 - Separate developer tools, player runtime, adapters, and mod behavior. Do not expose transport or HMR internals to gameplay algorithms or UI.
