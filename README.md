@@ -74,7 +74,7 @@ dotnet test tests/Runtime/Sts2.Devkit.Tests.csproj
 
 Tests cover command execution, failed replacement retention, invalid-metadata and diagnostic-failure cleanup, overlapping-operation rejection/recovery, identity/path rejection, command capability enforcement, explicit unload, old-generation collection after invocation, and public error normalization. They use real temporary files and collectible assemblies; no game is required.
 
-The player package contains only the probe's native adapter and manifest. Install BaseLib/RitsuLib separately as declared dependencies. Player behavior is compiled from the same `Behavior.cs` and has no SDK runtime, contracts, workspace-path, or developer-process dependency. Workshop uploading is not part of this slice.
+The player package contains ReloadProbe.dll, ReloadProbe.json and its MIT LICENSE. Install BaseLib/RitsuLib separately as declared dependencies. Player behavior is compiled from the same `Behavior.cs` and has no SDK runtime, contracts, workspace-path, or developer-process dependency. Workshop uploading is not part of this slice.
 
 ## Limits
 
@@ -93,7 +93,7 @@ The player package contains only the probe's native adapter and manifest. Instal
 - Mod behavior remains independent of SDK development internals.
 - Finished mods work without this source checkout or developer processes.
 
-The player package contains ReloadProbe.dll, ReloadProbe.json and its MIT LICENSE. SDK preparation keeps upstream Apache-2.0 LICENSE/NOTICE and adds the original SDK notice separately as LICENSE-MIT.
+SDK preparation keeps upstream Apache-2.0 LICENSE/NOTICE and adds the original SDK notice separately as LICENSE-MIT.
 
 ## Related projects
 
