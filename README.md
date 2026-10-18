@@ -93,6 +93,8 @@ The player package contains only the probe's native adapter and manifest. Instal
 - Mod behavior remains independent of SDK development internals.
 - Finished mods work without this source checkout or developer processes.
 
+The player package contains ReloadProbe.dll, ReloadProbe.json and its MIT LICENSE. SDK preparation keeps upstream Apache-2.0 LICENSE/NOTICE and adds the original SDK notice separately as LICENSE-MIT.
+
 ## Related projects
 
 [Workspace](https://github.com/Xaaalera/sts2-workshop) · [Reload probe](https://github.com/Xaaalera/sts2-reload-probe) · [BaseLib](https://github.com/Alchyr/BaseLib-StS2) · [RitsuLib](https://github.com/BAKAOLC/STS2-RitsuLib) · [Working standards](https://github.com/Xaaalera/claude-skills).

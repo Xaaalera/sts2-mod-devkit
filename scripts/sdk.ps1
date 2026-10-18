@@ -99,6 +99,7 @@ function Prepare-Game($Configuration) {
     New-Item -ItemType Directory -Path $modDirectory -Force | Out-Null
     Copy-Item -LiteralPath "$sdkRoot/src/Bootstrap/bin/Debug/net9.0/Sts2Devkit.dll","$sdkRoot/src/GameHost/bin/Debug/net9.0/Sts2.Devkit.GameHost.dll","$sdkRoot/src/Runtime/bin/Debug/net9.0/Sts2.Devkit.Runtime.dll","$sdkRoot/src/Contracts/bin/Debug/net9.0/HotMod.Contracts.dll","$sdkRoot/Sts2Devkit.json" -Destination $modDirectory
     Copy-Item -LiteralPath "$sdkRoot/upstream/spirectl/LICENSE","$sdkRoot/upstream/spirectl/NOTICE" -Destination $modDirectory
+    Copy-Item -LiteralPath "$sdkRoot/LICENSE" -Destination (Join-Path $modDirectory 'LICENSE-MIT')
     $pluginDirectory = Join-Path $stateDirectory 'plugins/reload-probe'
     New-Item -ItemType Directory -Path $pluginDirectory -Force | Out-Null
     Copy-Item -LiteralPath "$($Configuration.probeDirectory)/src/Extension/bin/Debug/net9.0/reload-probe.dll" -Destination $pluginDirectory
@@ -258,7 +259,7 @@ try {
         'package-player' {
             $packageDirectory = Join-Path $stateDirectory 'player-package/ReloadProbe'
             New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
-            Copy-Item -LiteralPath "$($configuration.probeDirectory)/src/Player/bin/Debug/net9.0/ReloadProbe.dll","$($configuration.probeDirectory)/ReloadProbe.json" -Destination $packageDirectory
+            Copy-Item -LiteralPath "$($configuration.probeDirectory)/src/Player/bin/Debug/net9.0/ReloadProbe.dll","$($configuration.probeDirectory)/ReloadProbe.json","$($configuration.probeDirectory)/LICENSE" -Destination $packageDirectory
             @{package=$packageDirectory;runtimeDependencies=@('BaseLib 3.4.7','RitsuLib 0.6.7 / API 0.107.1')} | ConvertTo-Json
         }
     }
