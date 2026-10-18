@@ -2,6 +2,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using Godot;
 using HotMod.Shell.Runtime;
+using MegaCrit.Sts2.Core.DevConsole.ConsoleCommands;
+using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Saves;
 using Environment = System.Environment;
 
 namespace Sts2.Devkit.GameHost;
@@ -15,6 +18,8 @@ public static class GameSession
     private static string _session = "";
     private static int _gameThread;
     private static bool _busy;
+    private static bool _testProgressionAttempted;
+    private static object? _testProgression;
     private static readonly Dictionary<string, Func<string, string, string>> Adapters = new(StringComparer.Ordinal);
 
     public static IDisposable RegisterAdapter(string pluginId, Func<string, string, string> callback)
@@ -70,12 +75,31 @@ public static class GameSession
         _timer = new Godot.Timer { WaitTime = 0.05, Autostart = true, ProcessMode = Node.ProcessModeEnum.Always };
         _timer.Timeout += Poll;
         tree.Root.AddChild(_timer);
-        PublishStatus();
+        Poll();
     }
 
     private static async void Poll()
     {
         if (_busy) { return; }
+        if (!_testProgressionAttempted)
+        {
+            if (NGame.Instance?.MainMenu is null || !SaveManager.Instance.IsProfileInitialized) { return; }
+            _testProgressionAttempted = true;
+            _busy = true;
+            try
+            {
+                try { _testProgression = UnlockTestProgression(); }
+                catch (Exception exception)
+                {
+                    AppendDiagnostic(exception.ToString());
+                    _testProgression = SdkErrors.Normalize(exception);
+                }
+                await PublishStatusAsync();
+            }
+            catch (Exception exception) { AppendDiagnostic($"Initial test progression status publication failed: {exception}"); }
+            finally { _busy = false; }
+            return;
+        }
         var requestPath = Path.Combine(_control, "request.json");
         var processingPath = Path.Combine(_control, "processing.json");
         if (!File.Exists(requestPath)) { return; }
@@ -131,7 +155,22 @@ public static class GameSession
         }
     }
 
-    private static void PublishStatus() => PublishStatusAsync().GetAwaiter().GetResult();
+    private static object UnlockTestProgression()
+    {
+        RequireGameThread();
+        var userDirectory = Path.GetFullPath(OS.GetUserDataDir()).TrimEnd('/', '\\');
+        var expectedDirectory = Environment.GetEnvironmentVariable("STS2_DEVKIT_USER_DIR");
+        var testProfileRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Sts2Devkit") + Path.DirectorySeparatorChar;
+        var progressPath = Path.GetFullPath(ProjectSettings.GlobalizePath(SaveManager.Instance.GetProfileScopedPath("saves/progress.save")));
+        if (!userDirectory.StartsWith(testProfileRoot, StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(expectedDirectory) ||
+            !string.Equals(userDirectory, Path.GetFullPath(expectedDirectory).TrimEnd('/', '\\'), StringComparison.OrdinalIgnoreCase) ||
+            !progressPath.StartsWith(userDirectory + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        { throw new SdkFault("SESSION_MISMATCH"); }
+        if (File.Exists(progressPath)) { File.Copy(progressPath, Path.Combine(_control, "progress-before-unlock.save"), false); }
+        var result = new UnlockConsoleCmd().Process(null, ["all"]);
+        if (!result.success) { throw new SdkFault("INTERNAL_FAILURE"); }
+        return new { unlocked = true, profile = SaveManager.Instance.CurrentProfileId };
+    }
 
     private static Task PublishStatusAsync()
     {
@@ -144,6 +183,7 @@ public static class GameSession
             executable = process.MainModule!.FileName,
             userDirectory = OS.GetUserDataDir(),
             gameThread = _gameThread,
+            testProgression = _testProgression,
             windowMode = DisplayServer.WindowGetMode().ToString(),
             windowWidth = DisplayServer.WindowGetSize().X,
             windowHeight = DisplayServer.WindowGetSize().Y,

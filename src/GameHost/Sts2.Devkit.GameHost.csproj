@@ -2,5 +2,6 @@
   <ItemGroup>
     <ProjectReference Include="../Runtime/Sts2.Devkit.Runtime.csproj" />
     <Reference Include="GodotSharp"><HintPath>$(Sts2DataDir)/GodotSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="sts2"><HintPath>$(Sts2DataDir)/sts2.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>
