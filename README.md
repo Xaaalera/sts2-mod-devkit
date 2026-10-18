@@ -4,14 +4,14 @@ Private development SDK for Slay the Spire 2. The target is fast hot module repl
 
 ## Status
 
-The first Windows development slice implements trusted extension loading, advertised commands, reload, unload, structured diagnostics, and an owned-game launcher. It compiles the pinned spirectl contracts/reload code and adds a game-context adapter. Twelve isolated filesystem integration tests pass. A bounded live probe changed A to B in the same PID/game thread, collected the previous generation, retained B on a malformed replacement, and recovered successfully. One warm edit-build-deploy-reload-observe cycle measured 1.238 seconds; this is not a latency guarantee.
+The first Windows development slice implements trusted extension loading, advertised commands, reload, unload, structured diagnostics, and an owned-game launcher. It compiles the pinned spirectl contracts/reload code and adds a game-context adapter. Fourteen isolated filesystem integration tests pass. A bounded live probe changed A to B in the same PID/game thread, collected the previous generation, retained B on a malformed replacement, and recovered successfully. One warm edit-build-deploy-reload-observe cycle measured 1.238 seconds; this is not a latency guarantee.
 
-See the [research report](https://github.com/Xaaalera/sts2-workshop/blob/main/docs/research/2026-10-16-sdk-landscape.md) for evidence, failed hypotheses, and remaining limits.
+See the [research report](https://github.com/Xaaalera/sts2-workshop/blob/feat/intent-lens/docs/research/2026-10-16-sdk-landscape.md) for evidence, failed hypotheses, and remaining limits.
 
 ## Standalone use
 
 ```powershell
-git clone https://github.com/Xaaalera/sts2-mod-devkit.git
+git clone --branch feat/intent-lens https://github.com/Xaaalera/sts2-mod-devkit.git
 cd sts2-mod-devkit
 git submodule update --init upstream/spirectl
 ```
@@ -22,7 +22,7 @@ This slice pins BaseLib 3.4.7 and RitsuLib 0.6.7's API-0.107.1 compatibility pac
 
 ## Use the SDK
 
-Clone the [probe](https://github.com/Xaaalera/sts2-reload-probe) separately, then run these commands from the SDK root:
+Clone the [probe implementation](https://github.com/Xaaalera/sts2-reload-probe/tree/feat/sdk-hmr) separately using `git clone --branch feat/sdk-hmr https://github.com/Xaaalera/sts2-reload-probe.git`, then run these commands from the SDK root:
 
 ```powershell
 ./scripts/sdk.ps1 -Action init -GameDirectory 'D:/Games/Slay the Spire 2' -ProbeDirectory 'D:/Code/sts2-reload-probe'
@@ -40,7 +40,7 @@ Clone the [probe](https://github.com/Xaaalera/sts2-reload-probe) separately, the
 
 `launch` opens the owned game with Steam disabled and file-backed logs. It refuses to start a second test process under its own state directory. An unrelated owner Steam game is permitted and is never attached to or controlled. The handshake reports PID, creation time, executable, session ID, user directory, window mode, and library versions. `status`, `reload`, `invoke`, and `unload` verify the owned process identity. Mailbox readers allow Windows delete sharing so atomic response/status replacement can proceed. A timeout means unknown outcome: inspect the existing session rather than automatically replaying a mutation.
 
-After changing `src/Behavior.cs` in the probe, build its extension project and run `reload` then `invoke`. The response reports the actual generation/value. The CLI's automatic artifact recipe currently owns only `reload-probe`; the host itself accepts other explicitly installed extension IDs under `.local/plugins/<id>/<id>.dll`.
+After changing `src/Behavior.cs` in the probe, build its extension project and run `reload` then `invoke`. The response reports the actual generation/value. Pass `-PluginId <id> -ArtifactPath <extension.dll>` to reload other explicitly built extensions. IDs and manifest identity are validated; artifacts are installed under `.local/plugins/<id>/<id>.dll`.
 
 Detailed operation history is under `.local/sessions/<session>/events.jsonl`; status and correlated response files are in that same directory. CLI failures reference `.local/cli-errors.jsonl`. SDK operation errors use the Google status envelope with registered reasons from `src/Runtime/SdkErrors.cs` and English messages in `Errors.resx`.
 
@@ -98,3 +98,11 @@ The player package contains only the probe's native adapter and manifest. Instal
 [Workspace](https://github.com/Xaaalera/sts2-workshop) · [Reload probe](https://github.com/Xaaalera/sts2-reload-probe) · [BaseLib](https://github.com/Alchyr/BaseLib-StS2) · [RitsuLib](https://github.com/BAKAOLC/STS2-RitsuLib) · [Working standards](https://github.com/Xaaalera/claude-skills).
 
 [Xaaalera](https://github.com/Xaaalera) · [Email](mailto:dampirsimpl@gmail.com) · [Telegram](https://t.me/Victima). Unofficial fan project, not affiliated with Mega Crit.
+
+## Resident game adapters
+
+`GameSession.RegisterAdapter(id, callback)` returns a disposable registration lease. Resident native mod adapters may expose explicit SDK commands using BCL strings. Call `sdk.ps1 -Action adapter -PluginId <id> -Command <command> -Arguments <hashtable>`; registration and dispatch run on the owned game thread. Dispose registrations with the resident adapter, separately from collectible logic.
+
+`GameSession.InvokeExtensionCommand(id, command, arguments)` invokes the existing advertised extension command. A missing/busy extension reports unavailable; an independent native player adapter can use its local implementation. The player must not require an SDK assembly reference. Intent Lens exercises this bridge with graph snapshots and pure probability results.
+
+Publication retries only identical response/status bytes on transient Windows sharing errors. It does not rerun a mutation. Status-publication failure cannot overwrite an already published successful result. Fourteen filesystem/runtime tests include held-reader publication recovery. Fresh owned-host startup, native adapter dispatch and actual extension forecasts were checked in the publication review session. The four-case UI cache fixture also verified extension predecessor disposal/collection after real invocation. Sharing-lock recovery remains filesystem-test evidence; no live game contention claim is made.
