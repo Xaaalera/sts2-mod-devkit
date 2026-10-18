@@ -1,6 +1,6 @@
 # StS2 Mod Devkit
 
-Private development SDK for Slay the Spire 2. The target is fast hot module replacement (HMR) and plugins that extend commands, events, diagnostics, and development workflows through versioned contracts.
+Development SDK for Slay the Spire 2. The target is fast hot module replacement (HMR) and plugins that extend commands, events, diagnostics, and development workflows through versioned contracts.
 
 ## Status
 
@@ -74,7 +74,7 @@ dotnet test tests/Runtime/Sts2.Devkit.Tests.csproj
 
 Tests cover command execution, failed replacement retention, invalid-metadata and diagnostic-failure cleanup, overlapping-operation rejection/recovery, identity/path rejection, command capability enforcement, explicit unload, old-generation collection after invocation, and public error normalization. They use real temporary files and collectible assemblies; no game is required.
 
-The player package contains only the probe's native adapter and manifest. Install BaseLib/RitsuLib separately as declared dependencies. Player behavior is compiled from the same `Behavior.cs` and has no SDK runtime, contracts, workspace-path, or developer-process dependency. Workshop uploading is not part of this slice.
+The player package contains ReloadProbe.dll, ReloadProbe.json and its MIT LICENSE. Install BaseLib/RitsuLib separately as declared dependencies. Player behavior is compiled from the same `Behavior.cs` and has no SDK runtime, contracts, workspace-path, or developer-process dependency. Workshop uploading is not part of this slice.
 
 ## Limits
 
@@ -93,6 +93,8 @@ The player package contains only the probe's native adapter and manifest. Instal
 - Mod behavior remains independent of SDK development internals.
 - Finished mods work without this source checkout or developer processes.
 
+SDK preparation keeps upstream Apache-2.0 LICENSE/NOTICE and adds the original SDK notice separately as LICENSE-MIT.
+
 ## Related projects
 
 [Workspace](https://github.com/Xaaalera/sts2-workshop) · [Reload probe](https://github.com/Xaaalera/sts2-reload-probe) · [BaseLib](https://github.com/Alchyr/BaseLib-StS2) · [RitsuLib](https://github.com/BAKAOLC/STS2-RitsuLib) · [Working standards](https://github.com/Xaaalera/claude-skills).
@@ -106,3 +108,9 @@ The player package contains only the probe's native adapter and manifest. Instal
 `GameSession.InvokeExtensionCommand(id, command, arguments)` invokes the existing advertised extension command. A missing/busy extension reports unavailable; an independent native player adapter can use its local implementation. The player must not require an SDK assembly reference. Intent Lens exercises this bridge with graph snapshots and pure probability results.
 
 Publication retries only identical response/status bytes on transient Windows sharing errors. It does not rerun a mutation. Status-publication failure cannot overwrite an already published successful result. Fourteen filesystem/runtime tests include held-reader publication recovery. Fresh owned-host startup, native adapter dispatch and actual extension forecasts were checked in the publication review session. The four-case UI cache fixture also verified extension predecessor disposal/collection after real invocation. Sharing-lock recovery remains filesystem-test evidence; no live game contention claim is made.
+
+## License
+
+Original project code and documentation are licensed under the [MIT License](LICENSE), copyright 2026 [Xaaalera](https://github.com/Xaaalera). Commercial use and redistribution are allowed; retain the copyright and license notice in distributed copies or substantial portions. Third-party code, dependencies and game assets retain their own licenses and ownership.
+
+The contracts and reload implementation compiled from spirectl remain Apache-2.0. The contract NuGet package retains its Apache-2.0 metadata and upstream LICENSE/NOTICE. See [third-party notices](THIRD_PARTY_NOTICES.md).
