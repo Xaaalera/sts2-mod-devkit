@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>HotMod.Contracts</AssemblyName>
+    <PackageId>Sts2.ModDevkit.Contracts</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../upstream/spirectl/templates/stable-harmony-trampoline/src/HotMod.Contracts/*.cs" />
+    <None Include="../../upstream/spirectl/LICENSE" Pack="true" PackagePath="/LICENSE" />
+    <None Include="../../upstream/spirectl/NOTICE" Pack="true" PackagePath="/NOTICE" />
+  </ItemGroup>
+</Project>

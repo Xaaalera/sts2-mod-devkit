@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Runtime/Sts2.Devkit.Runtime.csproj" />
+    <ProjectReference Include="../Fixture/Fixture.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../InvalidFixture/InvalidFixture.csproj" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
+  </ItemGroup>
+  <Target Name="CopyFixture" AfterTargets="Build">
+    <Copy SourceFiles="../Fixture/bin/$(Configuration)/net9.0/Fixture.dll" DestinationFolder="$(OutDir)fixtures" />
+    <Copy SourceFiles="../InvalidFixture/bin/$(Configuration)/net9.0/InvalidFixture.dll" DestinationFolder="$(OutDir)fixtures" />
+  </Target>
+</Project>

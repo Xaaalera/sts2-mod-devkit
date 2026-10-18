@@ -1,0 +1,12 @@
+{
+  "id": "Sts2Devkit",
+  "name": "StS2 Devkit",
+  "author": "Xaaalera",
+  "description": "Development host for explicitly installed, trusted SDK extensions.",
+  "version": "0.1.0-alpha.1",
+  "has_pck": false,
+  "has_dll": true,
+  "affects_gameplay": false,
+  "min_game_version": "0.107.1",
+  "dependencies": [{ "id": "BaseLib" }, { "id": "STS2-RitsuLib" }]
+}

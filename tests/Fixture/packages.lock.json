@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net9.0": {
+      "Sts2.ModDevkit.Contracts": {
+        "type": "Project"
+      }
+    }
+  }
+}

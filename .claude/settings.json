@@ -1,21 +1,22 @@
 {
-  "extraKnownMarketplaces": {
-    "xaaalera": {
-      "source": {
-        "source": "github",
-        "repo": "Xaaalera/claude-skills"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "meta@xaaalera": true,
-    "docs@xaaalera": true,
-    "git@xaaalera": true,
-    "tests@xaaalera": true,
-    "error@xaaalera": true,
-    "i18n@xaaalera": true,
-    "critique@xaaalera": true,
-    "review@xaaalera": true,
-    "review-workflow@xaaalera": true
-  }
+    "extraKnownMarketplaces":  {
+                                   "xaaalera":  {
+                                                    "source":  {
+                                                                   "source":  "github",
+                                                                   "repo":  "Xaaalera/claude-skills"
+                                                               }
+                                                }
+                               },
+    "enabledPlugins":  {
+                           "meta@xaaalera":  true,
+                           "docs@xaaalera":  true,
+                           "git@xaaalera":  true,
+                           "tests@xaaalera":  true,
+                           "error@xaaalera":  true,
+                           "i18n@xaaalera":  true,
+                           "critique@xaaalera":  true,
+                           "review@xaaalera":  true,
+                           "review-workflow@xaaalera":  true,
+                           "frontend-js@xaaalera":  true
+                       }
 }

@@ -1,0 +1,171 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Review framework per-project config",
+  "description": "Targets the generic review plugin to a specific repo. Place at .claude/review.config.json. Anything omitted falls back to DEFAULT_CONFIG in the published bladeforge-review-harness package.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "persona": {
+      "type": "string",
+      "enum": [
+        "twitch",
+        "plain"
+      ],
+      "default": "twitch",
+      "description": "Voice/flavor toggle for reviewer agents that support it, notably the craft lens. 'twitch' = themed Twitch plague-rat voice; 'plain' = neutral prose. Substance (verdict/findings) is identical either way."
+    },
+    "base": {
+      "type": "string",
+      "description": "Git base ref for the cumulative diff. Defaults to the branch upstream, else origin/main."
+    },
+    "secretAllowlist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Extra markers (matched against the secret VALUE) that suppress secret-scan false positives."
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/agent"
+      }
+    },
+    "gates": {
+      "type": "array",
+      "description": "Deterministic external oracles /review runs over the change set (e.g. the repo's own eval-gate, a typecheck, the test suite). A gate whose command exits non-zero REFUSES the attestation outright, like the secret scan — this is what keeps the review gate from attesting a diff the pre-push/CI gate then rejects. Unlike a lens's soft `checks`, a gate is hard and deterministic.",
+      "items": {
+        "$ref": "#/definitions/gate"
+      }
+    }
+  },
+  "definitions": {
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "command"],
+      "properties": {
+        "name": { "type": "string", "description": "short label shown when the gate refuses (e.g. \"eval-gate\")" },
+        "command": { "type": "string", "description": "the shell command run over the change set; a non-zero exit blocks attestation" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Reviewer id. Eight ship built in: craft, architecture, tests, docs, security are enabled by default; skill, leak and security-scan are for repositories that publish skills and must be enabled deliberately; others are appended."
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Skill ids the agent loads (encode the project's rules)."
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rule"
+          }
+        },
+        "pairedDocs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/docPair"
+          }
+        },
+        "extensionSkill": {
+          "type": "string",
+          "description": "Optional prose skill for rules too complex for config fields (the escape hatch)."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Deterministic commands /review runs ONCE per round (step 2.5), whose results are handed to this lens as machine-verified facts. The deterministic half of the lens's subject \u2014 a paired-doc gate, a typecheck \u2014 so the lens spends judgment calls only on what a command cannot decide. A failing check is evidence for the lens to weigh, never a gate by itself.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "command"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Short label the lens cites, e.g. docs-check"
+              },
+              "command": {
+                "type": "string",
+                "description": "The exact shell command, run from the repo root"
+              }
+            }
+          }
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "pattern",
+        "severity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regex grepped across the whole changed set."
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "major",
+            "minor"
+          ]
+        }
+      }
+    },
+    "docPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "doc",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Glob; when a changed path matches it, the doc must also change."
+        },
+        "doc": {
+          "type": "string",
+          "description": "Path/fragment of the required doc/artifact."
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "blocker",
+            "major"
+          ]
+        }
+      }
+    }
+  }
+}

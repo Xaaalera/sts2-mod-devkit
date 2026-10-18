@@ -1,0 +1,90 @@
+{
+    "$schema":  "./review.config.schema.json",
+    "persona":  "plain",
+    "base":  "origin/main",
+    "secretAllowlist":  [
+
+                        ],
+    "agents":  [
+                   {
+                       "name":  "craft",
+                       "threshold":  7,
+                       "skills":  [
+                                      "meta:solid",
+                                      "meta:ockham",
+                                      "frontend-js:conventions"
+                                  ],
+                       "rules":  [
+
+                                 ]
+                   },
+                   {
+                       "name":  "architecture",
+                       "enabled":  true,
+                       "threshold":  8,
+                       "skills":  [
+                                      "meta:solid",
+                                      "meta:ockham"
+                                  ],
+                       "rules":  [
+
+                                 ]
+                   },
+                   {
+                       "name":  "tests",
+                       "enabled":  true,
+                       "threshold":  7,
+                       "skills":  [
+                                      "tests:architecture"
+                                  ],
+                       "rules":  [
+
+                                 ]
+                   },
+                   {
+                       "name":  "docs",
+                       "threshold":  8,
+                       "skills":  [
+                                      "docs:standard",
+                                      "meta:lean-writing"
+                                  ],
+                       "rules":  [
+
+                                 ]
+                   },
+                   {
+                       "name":  "security",
+                       "threshold":  9,
+                       "skills":  [
+
+                                  ],
+                       "rules":  [
+
+                                 ]
+                   },
+                   {
+                       "name":  "skill",
+                       "enabled":  false,
+                       "threshold":  7,
+                       "skills":  [
+
+                                  ]
+                   },
+                   {
+                       "name":  "leak",
+                       "enabled":  false,
+                       "threshold":  9,
+                       "skills":  [
+
+                                  ]
+                   },
+                   {
+                       "name":  "security-scan",
+                       "enabled":  false,
+                       "threshold":  9,
+                       "skills":  [
+
+                                  ]
+                   }
+               ]
+}

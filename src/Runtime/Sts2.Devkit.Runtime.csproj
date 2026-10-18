@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Sts2.Devkit</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Sts2.Devkit.Contracts.csproj" />
+    <Compile Include="../../upstream/spirectl/templates/stable-harmony-trampoline/src/HotMod.Shell/Runtime/*.cs" />
+    <Compile Include="../../upstream/spirectl/templates/stable-harmony-trampoline/src/HotMod.Shell/Diagnostics/*.cs" />
+  </ItemGroup>
+</Project>

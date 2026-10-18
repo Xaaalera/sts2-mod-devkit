@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><DefineConstants>$(DefineConstants);INVALID_CAPABILITIES</DefineConstants></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Contracts/Sts2.Devkit.Contracts.csproj" />
+    <Compile Include="../Fixture/FixtureExtension.cs" Link="FixtureExtension.cs" />
+  </ItemGroup>
+</Project>
